@@ -38,7 +38,7 @@ def all(db: Session = Depends(get_db), get_current_user: schemas.User= Depends(o
     return blogs
 
 @app.get('/blog/{id}', status_code = status.HTTP_200_OK, response_model=schemas.ShowBlog, tags=["blogs"])
-def show(id, db: Session = Depends(get_db)):
+def show(id: int, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     if blog is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, 
@@ -46,16 +46,17 @@ def show(id, db: Session = Depends(get_db)):
     return blog
 
 @app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT, tags=["blogs"])
-def destroy(id,  db: Session = Depends(get_db)):
+def destroy(id: int,  db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id)
     if not blog.first():
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, 
                             detail=f'Blog with id {id} is not found')
     blog.delete(synchronize_session=False)
-    return f'blog is deleted with id {id}.'
+    db.commit()
+    return "deleted"
 
 @app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED, tags=["blogs"])
-def update(id, request: schemas.Blog,  db: Session = Depends(get_db)):
+def update(id: int, request: schemas.Blog,  db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id)
     if not blog.first():
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, 
